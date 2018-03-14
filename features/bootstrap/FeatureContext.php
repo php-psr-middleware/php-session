@@ -47,6 +47,9 @@ class FeatureContext implements Context
      */
     public function theMiddlewareIsProcessed()
     {
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            throw new RuntimeException('PHP sessions are already active');
+        }
         $this->response = $this->sessionMiddleware->process($this->request, $this->handler);
     }
 
@@ -55,7 +58,7 @@ class FeatureContext implements Context
      */
     public function aNewSessionIsStarted()
     {
-        throw new PendingException();
+        Assert::assertEquals($this->handler->wasActive, PHP_SESSION_ACTIVE);
     }
 
     /**
@@ -182,8 +185,10 @@ class FeatureContext implements Context
 
 class Handler implements RequestHandlerInterface
 {
+    public $wasActive;
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
+        $this->wasActive = session_status();
         return new Response('php://memory', 200);
     }
 }
