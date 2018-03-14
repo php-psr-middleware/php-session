@@ -23,7 +23,7 @@ class FeatureContext implements Context
      */
     public function theSessionMiddleware()
     {
-        $this->sessionMiddleware = new \PsrMiddlewares\PhpSession(new \PsrMiddlewares\SessionStatus);
+        $this->sessionMiddleware = new \PsrMiddlewares\PhpSession();
     }
 
     /**
@@ -85,7 +85,7 @@ class FeatureContext implements Context
      */
     public function constructorWithNoConfigurationParameters()
     {
-        $this->sessionMiddleware = new \PsrMiddlewares\PhpSession(new \PsrMiddlewares\SessionStatus);
+        $this->sessionMiddleware = new \PsrMiddlewares\PhpSession();
     }
 
     /**
@@ -113,10 +113,7 @@ class FeatureContext implements Context
      */
     public function constructorWithArgument(string $arg1)
     {
-        $this->sessionMiddleware = new \PsrMiddlewares\PhpSession(
-            new \PsrMiddlewares\SessionStatus,
-            $arg1
-        );
+        $this->sessionMiddleware = new \PsrMiddlewares\PhpSession($arg1);
     }
 
     /**
@@ -138,11 +135,7 @@ class FeatureContext implements Context
      */
     public function constructorWithOptionsArrayThatIncludesAnd(string $arg1, $arg2)
     {
-        $this->sessionMiddleware = new \PsrMiddlewares\PhpSession(
-            new \PsrMiddlewares\SessionStatus,
-            '',
-            [$arg1 => $arg2]
-        );
+        $this->sessionMiddleware = new \PsrMiddlewares\PhpSession('', [$arg1 => $arg2]);
     }
 
     /**

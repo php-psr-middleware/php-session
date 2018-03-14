@@ -11,13 +11,12 @@ use Psr\Http\Server\RequestHandlerInterface;
 
 class PhpSession implements MiddlewareInterface
 {
-    private $status;
+    private $id;
+    private $options;
 
-    public function __construct(
-        SessionStatus $status, string $id = '', array $options = []
+    public function __construct(string $id = '', array $options = []
     )
     {
-        $this->status = $status;
         $this->id = $id;
         $this->options =  $options;
     }
@@ -36,9 +35,10 @@ class PhpSession implements MiddlewareInterface
 
         $response = $handler->handle($request);
 
-        if ($this->status->isActive()) {
+        if(session_status() === PHP_SESSION_ACTIVE) {
             session_write_close();
         }
+
         return $response;
     }
 }
