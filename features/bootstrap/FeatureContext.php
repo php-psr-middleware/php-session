@@ -5,19 +5,25 @@ use Behat\Behat\Tester\Exception\PendingException;
 use Behat\Behat\Context\Context;
 use PHPUnit\Framework\Assert;
 
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+use Zend\Diactoros\Response;
+
 class FeatureContext implements Context
 {
-    private $handler;
     private $request;
-    private $middleware;
-
+    private $handler;
+    private $response;
+    private $sessionMiddleware;
 
     /**
      * @Given the session middleware
      */
     public function theSessionMiddleware()
     {
-        $this->middleware = new \PsrMiddlewares\PhpSession();
+        $this->sessionMiddleware = new \PsrMiddlewares\PhpSession();
     }
 
     /**
@@ -33,7 +39,7 @@ class FeatureContext implements Context
      */
     public function theRequestHandler()
     {
-        $this->handler = new \PsrMiddlewares\NullRequestHandler(200);
+        $this->handler = new Handler();
     }
 
     /**
@@ -41,7 +47,7 @@ class FeatureContext implements Context
      */
     public function theMiddlewareIsProcessed()
     {
-        $this->middleware->process($this->request, $this->handler);
+        $this->response = $this->sessionMiddleware->process($this->request, $this->handler);
     }
 
     /**
@@ -73,7 +79,7 @@ class FeatureContext implements Context
      */
     public function constructorWithNoConfigurationParameters()
     {
-        $this->middleware = new \PsrMiddlewares\PhpSession();
+        $this->sessionMiddleware = new \PsrMiddlewares\PhpSession();
     }
 
     /**
@@ -170,5 +176,14 @@ class FeatureContext implements Context
     public function sessionsAreDisabled()
     {
         throw new PendingException();
+    }
+}
+
+
+class Handler implements RequestHandlerInterface
+{
+    public function handle(ServerRequestInterface $request): ResponseInterface
+    {
+        return new Response('php://memory', 200);
     }
 }

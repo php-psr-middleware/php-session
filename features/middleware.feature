@@ -12,7 +12,7 @@ Feature: HTTP Sessions Middleware
         Then the request is handled by the request handler
         Then the session is closed
 
-    Scenario: Session
+    Scenario: Session with default configuration
         Given constructor with no configuration parameters
         And the request
         And the request handler
