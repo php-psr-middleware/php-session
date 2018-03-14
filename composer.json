@@ -1,0 +1,55 @@
+{
+    "name": "php-psr-middleware/php-session",
+    "type": "library",
+    "description": "Simple PHP PSR Middleware to start php session, process request, then close session.",
+    "keywords": [
+        "php", "psr", "psr15", "psr-15", "middleware", "session"
+    ],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Praveen Saxena",
+            "email": "saxep01@gmail.com"
+        }
+    ],
+    "homepage": "https://github.com/php-psr-middleware/php-session",
+    "support": {
+        "issues": "https://github.com/php-psr-middleware/php-session/issues"
+    },
+    "require": {
+        "php": "^7.0",
+        "psr/http-server-middleware": "^1.0",
+        "php-psr-middleware/null-request-handler": "^1.0"
+    },
+    "require-dev": {
+        "behat/behat": "^3.4",
+        "phpunit/phpunit": "^7.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "PsrMiddlewares\\": "src"
+        }
+    },
+    "autoload-dev": {
+    },
+    "scripts": {
+        "finstall": [
+            "@clean",
+            "@composer clearcache",
+            "@install-pkgs"
+        ],
+        "clean": [
+            "rm -rf composer.lock vendor"
+        ],
+        "install-pkgs": [
+            "@composer install --prefer-dist"
+        ],
+        "test":[
+            "vendor/bin/behat"
+        ]
+    },
+    "extra": {
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
