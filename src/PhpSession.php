@@ -13,14 +13,26 @@ class PhpSession implements MiddlewareInterface
 {
     private $status;
 
-    public function __construct(SessionStatus $status)
+    public function __construct(
+        SessionStatus $status, string $id = '', array $options = []
+    )
     {
         $this->status = $status;
+        $this->id = $id;
+        $this->options =  $options;
     }
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        session_start();
+        if(!empty($this->id)) {
+            session_id($this->id);
+        }
+
+        if (empty($this->options)) {
+            session_start();
+        } else {
+            session_start($this->options);
+        }
 
         $response = $handler->handle($request);
 

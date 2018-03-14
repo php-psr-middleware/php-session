@@ -94,100 +94,101 @@ class FeatureContext implements Context
     public function defaultSessionConfigurationParametersWereUsed()
     {
         $sessionName = session_name();
+        $sessionId = session_id();
+
         $this->handler->addCallable(
             'session_name', function() { return session_name(); }
+        );
+        $this->handler->addCallable(
+            'session_id', function() { return session_id(); }
         );
         $this->process();
 
         Assert::assertSame($this->handler->results['session_name'], $sessionName);
+        Assert::assertSame($this->handler->results['session_id'], $sessionId);
     }
 
     /**
-     * @Given constructor with argument _custom_session_id_
+     * @Given constructor with argument :arg1
      */
-    public function constructorWithArgumentCustomSessionId()
+    public function constructorWithArgument(string $arg1)
     {
-        throw new PendingException();
+        $this->sessionMiddleware = new \PsrMiddlewares\PhpSession(
+            new \PsrMiddlewares\SessionStatus,
+            $arg1
+        );
     }
 
     /**
-     * @Then the currently set session id is changed  to _custom_session_id_
+     * @Then the currently set session id is changed  to :arg1
      */
-    public function theCurrentlySetSessionIdIsChangedToCustomSessionId()
+    public function theCurrentlySetSessionIdIsChangedTo(string $arg1)
     {
-        throw new PendingException();
+        $this->handler->addCallable(
+            'session_id', function() { return session_id(); }
+        );
+
+        $this->process();
+
+        Assert::assertSame($this->handler->results['session_id'], $arg1);
     }
 
     /**
-     * @Given constructor with argument name
+     * @Given constructor with options array that includes :arg1 and :arg2
      */
-    public function constructorWithArgumentName()
+    public function constructorWithOptionsArrayThatIncludesAnd(string $arg1, $arg2)
     {
-        throw new PendingException();
+        $this->sessionMiddleware = new \PsrMiddlewares\PhpSession(
+            new \PsrMiddlewares\SessionStatus,
+            '',
+            [$arg1 => $arg2]
+        );
     }
 
     /**
-     * @Then the directive is changed to _custom_name_
+     * @Then the name is changed to :arg1
      */
-    public function theDirectiveIsChangedToCustomName()
+    public function theNameIsChangedTo($arg1)
     {
-        throw new PendingException();
+        $this->handler->addCallable(
+            'directive_change', function() { return session_name(); }
+        );
+
+        $this->process();
+
+        Assert::assertSame($this->handler->results['directive_change'], $arg1);
     }
 
     /**
-     * @Given constructor with argument cookie_domain
+     * @Then the cookie_domain is changed to :arg1
      */
-    public function constructorWithArgumentCookieDomain()
+    public function theCookieDomainIsChangedTo($arg1)
     {
-        throw new PendingException();
+        $this->handler->addCallable(
+            'directive_change', function () {
+            return session_get_cookie_params()['domain'];
+        }
+        );
+
+        $this->process();
+
+        Assert::assertSame($this->handler->results['directive_change'], $arg1);
     }
 
     /**
-     * @Then the directive is changed to example.com
+     * @Then the cookie_lifetime is changed to :arg1
      */
-    public function theDirectiveIsChangedToExampleCom()
+    public function theCookieLifetimeIsChangedTo(int $arg1)
     {
-        throw new PendingException();
-    }
+        $this->handler->addCallable(
+            'directive_change', function () {
+            return session_get_cookie_params()['lifetime'];
+        }
+        );
 
-    /**
-     * @Given constructor with argument save_path
-     */
-    public function constructorWithArgumentSavePath()
-    {
-        throw new PendingException();
-    }
+        $this->process();
 
-    /**
-     * @Then the directive is changed to example1\/example2\/
-     */
-    public function theDirectiveIsChangedToExampleExample()
-    {
-        throw new PendingException();
-    }
-
-    /**
-     * @Given there is a session already started
-     */
-    public function thereIsASessionAlreadyStarted()
-    {
-        throw new PendingException();
-    }
-
-    /**
-     * @Then an exception is thrown
-     */
-    public function anExceptionIsThrown()
-    {
-        throw new PendingException();
-    }
-
-    /**
-     * @Given sessions are disabled
-     */
-    public function sessionsAreDisabled()
-    {
-        throw new PendingException();
+        Assert::assertSame($this->handler->results['directive_change'], $arg1);
     }
 
     private function process()
@@ -218,8 +219,6 @@ class Handler implements RequestHandlerInterface
 
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
-//        $this->sessionWasActive = session_status();
-//        $this->requestWasHandled = true;
         foreach($this->callables as $key => $callable)
             $this->results[$key] = $callable();
 
