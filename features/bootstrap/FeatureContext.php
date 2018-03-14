@@ -39,7 +39,10 @@ class FeatureContext implements Context
      */
     public function theRequestHandler()
     {
-        $this->handler = new Handler();
+        $this->handler = new Handler([
+            function() { return session_status(); },
+            function() { return true; }
+        ]);
     }
 
     /**
@@ -50,7 +53,7 @@ class FeatureContext implements Context
         if (session_status() === PHP_SESSION_ACTIVE) {
             throw new RuntimeException('PHP sessions are already active');
         }
-        $this->response = $this->sessionMiddleware->process($this->request, $this->handler);
+        $this->process();
     }
 
     /**
@@ -58,7 +61,7 @@ class FeatureContext implements Context
      */
     public function aNewSessionIsStarted()
     {
-        Assert::assertSame($this->handler->sessionWasActive, PHP_SESSION_ACTIVE);
+        Assert::assertSame($this->handler->results[0], PHP_SESSION_ACTIVE);
     }
 
     /**
@@ -66,7 +69,7 @@ class FeatureContext implements Context
      */
     public function theRequestIsHandledByTheRequestHandler()
     {
-        Assert::assertSame($this->handler->requestWasHandled, true);
+        Assert::assertSame($this->handler->results[1], true);
     }
 
     /**
@@ -90,7 +93,9 @@ class FeatureContext implements Context
      */
     public function defaultSessionConfigurationParametersWereUsed()
     {
-        throw new PendingException();
+        $sessionName = session_name();
+        $this->process();
+
     }
 
     /**
@@ -180,6 +185,11 @@ class FeatureContext implements Context
     {
         throw new PendingException();
     }
+
+    private function process()
+    {
+        $this->response = $this->sessionMiddleware->process($this->request, $this->handler);
+    }
 }
 
 
@@ -187,11 +197,28 @@ class Handler implements RequestHandlerInterface
 {
     public $sessionWasActive;
     public $requestWasHandled = false;
+    public $sessionName;
+    public $callables = [];
+    public $results = [];
+
+    public function __construct(array $callables)
+    {
+        $this->callables = $callables;
+    }
+
+    public function addCallable(callable $callable)
+    {
+        $this->callables[] = $callable;
+        return $this;
+    }
 
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
-        $this->sessionWasActive = session_status();
-        $this->requestWasHandled = true;
+//        $this->sessionWasActive = session_status();
+//        $this->requestWasHandled = true;
+        foreach($this->callables as $callable)
+            $this->results[] = $callable();
+
         return new Response('php://memory', 200);
     }
 }
