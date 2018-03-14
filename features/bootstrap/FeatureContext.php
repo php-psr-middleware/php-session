@@ -94,8 +94,12 @@ class FeatureContext implements Context
     public function defaultSessionConfigurationParametersWereUsed()
     {
         $sessionName = session_name();
+        $this->handler->addCallable(
+            'session_name', function() { return session_name(); }
+        );
         $this->process();
 
+        Assert::assertSame($this->handler->results['session_name'], $sessionName);
     }
 
     /**
@@ -206,9 +210,9 @@ class Handler implements RequestHandlerInterface
         $this->callables = $callables;
     }
 
-    public function addCallable(callable $callable)
+    public function addCallable(string $name, callable $callable)
     {
-        $this->callables[] = $callable;
+        $this->callables[$name] = $callable;
         return $this;
     }
 
@@ -216,8 +220,8 @@ class Handler implements RequestHandlerInterface
     {
 //        $this->sessionWasActive = session_status();
 //        $this->requestWasHandled = true;
-        foreach($this->callables as $callable)
-            $this->results[] = $callable();
+        foreach($this->callables as $key => $callable)
+            $this->results[$key] = $callable();
 
         return new Response('php://memory', 200);
     }
