@@ -23,7 +23,7 @@ class FeatureContext implements Context
      */
     public function theSessionMiddleware()
     {
-        $this->sessionMiddleware = new \PsrMiddlewares\PhpSession();
+        $this->sessionMiddleware = new \PsrMiddlewares\PhpSession(new \PsrMiddlewares\SessionStatus);
     }
 
     /**
@@ -58,7 +58,7 @@ class FeatureContext implements Context
      */
     public function aNewSessionIsStarted()
     {
-        Assert::assertEquals($this->handler->wasActive, PHP_SESSION_ACTIVE);
+        Assert::assertSame($this->handler->sessionWasActive, PHP_SESSION_ACTIVE);
     }
 
     /**
@@ -66,7 +66,7 @@ class FeatureContext implements Context
      */
     public function theRequestIsHandledByTheRequestHandler()
     {
-        throw new PendingException();
+        Assert::assertSame($this->handler->requestWasHandled, true);
     }
 
     /**
@@ -74,7 +74,7 @@ class FeatureContext implements Context
      */
     public function theSessionIsClosed()
     {
-        throw new PendingException();
+        Assert::assertSame(session_status(), PHP_SESSION_NONE);
     }
 
     /**
@@ -82,7 +82,7 @@ class FeatureContext implements Context
      */
     public function constructorWithNoConfigurationParameters()
     {
-        $this->sessionMiddleware = new \PsrMiddlewares\PhpSession();
+        $this->sessionMiddleware = new \PsrMiddlewares\PhpSession(new \PsrMiddlewares\SessionStatus);
     }
 
     /**
@@ -185,10 +185,13 @@ class FeatureContext implements Context
 
 class Handler implements RequestHandlerInterface
 {
-    public $wasActive;
+    public $sessionWasActive;
+    public $requestWasHandled = false;
+
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
-        $this->wasActive = session_status();
+        $this->sessionWasActive = session_status();
+        $this->requestWasHandled = true;
         return new Response('php://memory', 200);
     }
 }
